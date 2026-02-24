@@ -4,9 +4,10 @@ Claude Code configuration files and reference docs for development projects.
 
 ## Quick Start
 1. Copy `CLAUDE.md` into the root of your project
-2. Run through the **Customization Checklist** below
-3. Copy any relevant `/docs/` files into your project's `/docs/` folder
-4. Reference docs on demand in Claude Code with `@docs/filename.md`
+2. Copy `.claude/settings.json` and `.claude/commands/` into your project
+3. Run through the **Customization Checklist** below
+4. Copy any relevant `/docs/` files into your project's `/docs/` folder
+5. Reference docs on demand in Claude Code with `@docs/filename.md`
 
 ## Customization Checklist
 
@@ -18,6 +19,8 @@ After copying `CLAUDE.md` into a project, search for `[CUSTOMIZE]` and update:
 - [ ] **Architecture tree** — Update folder structure to match your project
 - [ ] **Dependency Preferences** — Uncomment and list libraries Claude should use (and avoid)
 - [ ] **Known Gotchas** — Uncomment and add project-specific footguns as you discover them
+- [ ] **Slash commands** — Update `verify.md` with your actual lint/test/typecheck commands
+- [ ] **Permissions** — Add or remove tools in `.claude/settings.json` to match your stack
 
 ### Optional: Remove sections that don't apply
 - No Docker? Delete the Docker section
@@ -28,6 +31,10 @@ After copying `CLAUDE.md` into a project, search for `[CUSTOMIZE]` and update:
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` | Main Claude Code configuration — copy to project root |
+| `.claude/settings.json` | Project-level allowed tools (npm, docker, git, gh) |
+| `.claude/commands/verify.md` | `/verify` — run full lint + typecheck + test suite |
+| `.claude/commands/review.md` | `/review` — self-review branch changes before PR |
+| `.claude/commands/pr.md` | `/pr` — create PR with auto-generated summary |
 | `docs/plan-mode-prompt.md` | Garry Tan's structured code review framework |
 | `docs/db-connection.md` | PgBouncer + Prisma dual-URL setup |
 | `docs/db-rollback-process.md` | Prisma migration rollback procedures |
