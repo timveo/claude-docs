@@ -2,6 +2,7 @@
 
 > **[CUSTOMIZE]** Replace placeholder commands, paths, and domain context with your project's specifics before use.
 > This file is read automatically by Claude Code at the start of every session.
+> Last updated: [DATE] — keep the "Current Sprint" section live at all times.
 
 <!-- PROJECT CONTEXT — highest-value section, customize first -->
 ## Project
@@ -63,10 +64,11 @@ Each feature runs in its own git worktree — see **Parallel Development** below
 | Start feature | `/feature-start [N]` | Worktree + branch + draft PR |
 | Build | `/build-feature [N]` | Plan → TDD build → AC verify |
 | Quality check | `/verify` | Lint + typecheck + tests |
-| Security gate | `/security-review` | OWASP audit — run if touching auth/data/integrations |
-| Performance gate | `/performance-review` | N+1, bundle, indexes — run if touching queries/lists |
+| Security gate | `/security-review` | OWASP audit — **required** if touching auth/data/integrations |
+| Performance gate | `/performance-review` | N+1, bundle, indexes — **required** if touching queries/lists |
 | Human test | `/human-test [N]` | Docker stack + testing checklist |
 | Merge | `/pr-prep [N]` | Rebase + review + create PR + cleanup |
+| Client delivery | `/client-handoff` | Staging walkthrough → client review → go-live approval |
 
 ### Production Quality Gates
 | Command | Cadence |
@@ -76,6 +78,7 @@ Each feature runs in its own git worktree — see **Parallel Development** below
 | `/tech-debt adr "title"` | When making deliberate trade-offs |
 | `/dependency-audit` | Monthly + before every release |
 | `/release-checklist [version]` | Before every production deploy — GO / NO-GO |
+| `/incident-response` | When something breaks in production |
 
 ### Code Reviews
 - For every issue: describe concretely with file references, present 2–3 options with tradeoffs, give opinionated recommendation
@@ -170,6 +173,7 @@ Rules:
 - Only parallelize issues that don't touch the same files
 - Rebase against main daily to minimize conflicts
 - Run `/parallel-status` as your daily standup dashboard
+- **Hard cap: no new `/feature-start` if 2+ PRs are already awaiting review — clear the queue first**
 
 ---
 
@@ -178,7 +182,8 @@ Rules:
 - Write tests before implementation (test-first)
 - Unit tests colocated: `module.test.ts` next to the module
 - Integration tests in `/tests/`
-- Minimum: happy path + one failure path per function
+- **Minimum bar: every new service function gets a happy path test + one failure path test**
+- **Every new API endpoint gets at least one integration test**
 - Run `/verify` before marking any task done
 
 ---

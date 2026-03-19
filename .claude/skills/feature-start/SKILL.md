@@ -97,8 +97,12 @@ Closes #$ARGUMENTS
 ## Changes
 (to be filled in when ready for review)
 
-## Acceptance criteria
-(to be verified when ready)" \
+## Quality gates
+- [ ] /verify passes (lint + typecheck + tests)
+- [ ] /security-review run — or N/A (reason: _______________)
+- [ ] /performance-review run — or N/A (reason: _______________)
+- [ ] /human-test completed
+- [ ] All acceptance criteria met" \
   --label "in-progress"
 ```
 
@@ -128,7 +132,6 @@ GOAL: [one sentence from issue]
 Acceptance Criteria:
   • [criterion 1]
   • [criterion 2]
-  ...
 
 Technical notes: [from issue]
 

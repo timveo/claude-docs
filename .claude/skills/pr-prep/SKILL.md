@@ -38,7 +38,24 @@ All checks must be green before proceeding. Fix anything failing.
 
 ---
 
-## Step 3 — Acceptance criteria audit
+## Step 3 — Quality gate confirmation
+
+Before running the code review, confirm the required gates have been run.
+Check the PR description for these checkboxes — if either is unchecked and not marked N/A, stop and run them now.
+
+```bash
+gh pr view $ARGUMENTS --json body --jq '.body'
+```
+
+Gates required before merge:
+- **`/security-review`** — mandatory if the diff touches: auth, sessions, JWT, user data, payments, file uploads, external integrations, or any new API route
+- **`/performance-review`** — mandatory if the diff touches: database queries, `findMany`, list/table rendering, search endpoints, background jobs, or `package.json`
+
+If either applies and hasn't been run: run it now and address findings before proceeding.
+
+---
+
+## Step 4 — Acceptance criteria audit
 
 ```bash
 gh issue view $ARGUMENTS
@@ -58,7 +75,7 @@ If any criterion is unmet, fix it now. Do not proceed with an unmet criterion.
 
 ---
 
-## Step 4 — Code review
+## Step 5 — Code review
 
 ```bash
 /code-review
@@ -68,7 +85,7 @@ Address any Critical or Warning findings before marking the PR ready.
 
 ---
 
-## Step 5 — Create / finalize PR
+## Step 6 — Create / finalize PR
 
 ```bash
 /create-pr
@@ -76,7 +93,7 @@ Address any Critical or Warning findings before marking the PR ready.
 
 ---
 
-## Step 6 — Wait for approval and merge
+## Step 7 — Wait for approval and merge
 
 CI will run. Once a reviewer approves and all checks are green, the PR can be merged.
 
@@ -84,7 +101,7 @@ Merge strategy: **squash merge** — keeps main history clean, one commit per fe
 
 ---
 
-## Step 7 — Post-merge cleanup
+## Step 8 — Post-merge cleanup
 
 Once merged:
 
@@ -114,7 +131,7 @@ gh api repos/:owner/:repo/milestones/[milestone-number] \
 
 ---
 
-## Step 8 — What's next
+## Step 9 — What's next
 
 ```bash
 /parallel-status

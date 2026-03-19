@@ -1,7 +1,8 @@
 # claude-docs
 
 Claude Code configuration and command library for TypeScript/Node.js/React projects.
-Optimized for token efficiency, parallel feature development, and team consistency.
+Built for coding agencies and product teams — optimized for velocity, production quality,
+parallel development, and professional client delivery.
 
 ---
 
@@ -9,7 +10,7 @@ Optimized for token efficiency, parallel feature development, and team consisten
 
 ```bash
 # Copy into your project root
-cp -r .claude/ your-project/
+cp -r .claude/ your-project/      # includes skills/ directory with all 17 commands
 cp CLAUDE.md your-project/
 cp -r docs/ your-project/docs/
 
@@ -18,6 +19,7 @@ cd your-project
 ```
 
 Then customize every `[CUSTOMIZE]` section in `CLAUDE.md`.
+New developers start at `docs/ONBOARDING.md`.
 
 ---
 
@@ -28,22 +30,49 @@ claude-docs/
 ├── CLAUDE.md                        # Project config — Claude reads this every session
 ├── .claude/
 │   ├── settings.json                # Allowed bash commands
-│   └── commands/                    # Slash commands — one file = one /command
-│       ├── project-init.md          # /project-init
-│       ├── prd-to-issues.md         # /prd-to-issues
-│       ├── feature-start.md         # /feature-start [N]
-│       ├── build-feature.md         # /build-feature [N]
-│       ├── verify.md                # /verify
-│       ├── code-review.md           # /code-review
-│       ├── create-pr.md             # /create-pr
-│       ├── pr-prep.md               # /pr-prep [N]
-│       ├── human-test.md            # /human-test [N]
-│       └── parallel-status.md      # /parallel-status
+│   └── skills/                      # Slash commands — each is a directory with SKILL.md
+│       ├── build-feature/
+│       │   └── SKILL.md             # /build-feature [N]
+│       ├── client-handoff/
+│       │   └── SKILL.md             # /client-handoff [milestone]
+│       ├── code-review/
+│       │   └── SKILL.md             # /code-review
+│       ├── create-pr/
+│       │   └── SKILL.md             # /create-pr
+│       ├── dependency-audit/
+│       │   └── SKILL.md             # /dependency-audit
+│       ├── feature-start/
+│       │   └── SKILL.md             # /feature-start [N]
+│       ├── human-test/
+│       │   └── SKILL.md             # /human-test [N]
+│       ├── incident-response/
+│       │   └── SKILL.md             # /incident-response [live|post-mortem]
+│       ├── parallel-status/
+│       │   └── SKILL.md             # /parallel-status
+│       ├── performance-review/
+│       │   └── SKILL.md             # /performance-review
+│       ├── pr-prep/
+│       │   └── SKILL.md             # /pr-prep [N]
+│       ├── prd-to-issues/
+│       │   └── SKILL.md             # /prd-to-issues [path]
+│       ├── project-init/
+│       │   └── SKILL.md             # /project-init
+│       ├── release-checklist/
+│       │   └── SKILL.md             # /release-checklist [version]
+│       ├── security-review/
+│       │   └── SKILL.md             # /security-review
+│       ├── tech-debt/
+│       │   └── SKILL.md             # /tech-debt [scope]
+│       └── verify/
+│           └── SKILL.md             # /verify
 └── docs/
-    ├── plan-mode-prompt.md          # BIG/SMALL review framework (@docs/plan-mode-prompt.md)
-    ├── docker-workflow.md           # Compose patterns + environment strategy (@docs/docker-workflow.md)
-    ├── db-connection.md             # PgBouncer + Prisma dual-URL setup (@docs/db-connection.md)
-    └── db-rollback-process.md       # Migration rollback procedures (@docs/db-rollback-process.md)
+    ├── ONBOARDING.md                # New developer setup and day-one checklist
+    ├── plan-mode-prompt.md          # BIG/SMALL review framework
+    ├── client-handoff.md            # Client delivery process reference
+    ├── incident-response.md         # Production incident runbook
+    ├── docker-workflow.md           # Compose patterns + environment strategy
+    ├── db-connection.md             # PgBouncer + Prisma dual-URL setup
+    └── db-rollback-process.md       # Migration rollback procedures
 ```
 
 ---
@@ -66,7 +95,7 @@ claude-docs/
 | `/build-feature [N]` | Building a feature | Plan → TDD build → acceptance criteria verification → push |
 | `/verify` | Anytime / called by build & pr-prep | Lint + typecheck + tests in parallel (backend and frontend) |
 | `/human-test [N]` | After build + CI green | Start Docker stack, smoke tests, manual testing checklist |
-| `/pr-prep [N]` | After human test passes | Rebase + code-review + create-pr + post-merge cleanup |
+| `/pr-prep [N]` | After human test passes | Rebase + quality gates + code-review + create-pr + cleanup |
 
 ### Supporting commands
 
@@ -79,11 +108,20 @@ claude-docs/
 
 | Command | When | What |
 |---------|------|------|
-| `/security-review` | Before any PR touching auth, payments, or user data | OWASP Top 10 audit: auth, injection, secrets, CORS, headers, deps |
-| `/performance-review` | Before merging data-heavy or list features | N+1 detection, missing indexes, bundle size, React render efficiency |
+| `/security-review` | **Required** for any PR touching auth, payments, user data, or integrations | OWASP Top 10 audit: auth, injection, secrets, CORS, headers, deps |
+| `/performance-review` | **Required** for any PR touching queries, lists, bundles, or background jobs | N+1 detection, missing indexes, bundle size, React render efficiency |
 | `/tech-debt [scope]` | Sprint retrospectives, or as issues accumulate | Code smell audit, complexity hotspots, TODO sweep, ADR creation |
 | `/dependency-audit` | Monthly + before every release | npm audit, outdated packages, license compliance, bundle weight |
-| `/release-checklist [version]` | After all milestone PRs merged, CI green | Pre-production gate: migrations, env vars, rollback plan, observability, release notes |
+| `/release-checklist [version]` | After all milestone PRs merged, CI green | Pre-production gate: migrations, env vars, rollback plan, client sign-off |
+
+### Client delivery and incidents
+
+| Command | When | What |
+|---------|------|------|
+| `/client-handoff [milestone]` | After `/release-checklist` passes | Staging walkthrough → client access → feedback loop → go-live approval → notify |
+| `/incident-response live` | Something breaks in production | Rollback decision, client communication, incident log |
+| `/incident-response post-mortem` | After incident resolved | Timeline, root cause, action items, client communication |
+
 
 ---
 
@@ -92,23 +130,31 @@ claude-docs/
 ```
 Project setup (once)
   /project-init → /prd-to-issues
+  New developers → docs/ONBOARDING.md
 
 Per feature (repeat × N, up to 4 in parallel)
-  /parallel-status              ← check what's ready
+  /parallel-status              ← check what's ready (hard cap: no new start if 2+ PRs await review)
   /feature-start [N]            ← worktree + branch + draft PR
   /build-feature [N]            ← plan → TDD → verify ACs → push
-  /security-review              ← if touching auth / data / integrations
-  /performance-review           ← if touching queries / lists / bundles
+  /security-review              ← REQUIRED if touching auth / data / integrations
+  /performance-review           ← REQUIRED if touching queries / lists / bundles
   /human-test [N]               ← docker stack + manual checklist
-  /pr-prep [N]                  ← rebase → review → PR → cleanup
+  /pr-prep [N]                  ← rebase → quality gates → review → PR → cleanup
 
 Per milestone / release
   /dependency-audit             ← vulnerability + license sweep
   /tech-debt full-codebase      ← debt triage before sprint planning
   /release-checklist [version]  ← production gate → tag → deploy
+  /client-handoff [milestone]   ← staging → client review → go-live approval → notify
+
+When things go wrong
+  /incident-response live       ← rollback decision + client comms
+  /incident-response post-mortem ← root cause + action items
 ```
 
-### Parallel development
+---
+
+## Parallel development
 
 Run up to 3–4 features simultaneously using git worktrees:
 
@@ -124,22 +170,8 @@ Rules:
 - Only parallelize issues that don't touch the same files
 - Rebase against main daily
 - Draft PRs open immediately — CI runs from day one
+- **Hard cap: no new `/feature-start` if 2+ PRs are already awaiting review**
 - Use `/parallel-status` as your standup dashboard
-
----
-
-## Cowork PM skills — where they fit
-
-These Cowork skills handle the planning and communication layers that surround the code workflow:
-
-| Phase | Cowork skill | When to use |
-|-------|-------------|-------------|
-| **Pre-PRD research** | `product-management:user-research-synthesis` | Synthesize user interviews and support tickets into themes before writing a PRD |
-| **PRD creation** | `product-management:feature-spec` | Write a structured PRD with problem statement, user stories, requirements, and success metrics — then hand it to `/prd-to-issues` |
-| **Sprint planning** | `product-management:roadmap-management` | Prioritize issues using RICE/MoSCoW, plan the milestone before `/feature-start` |
-| **During build** | `product-management:metrics-tracking` | Define the success metrics and OKRs for a feature while it's being built |
-| **Post-merge comms** | `product-management:stakeholder-comms` | Draft milestone release notes, executive summaries, and customer-facing announcements after `/release-checklist` completes |
-| **Competitive context** | `product-management:competitive-analysis` | Research competitor capabilities when scoping a new feature area |
 
 ---
 
@@ -149,7 +181,10 @@ Load these on demand with `@docs/filename.md` — they stay out of context until
 
 | File | Contents |
 |------|----------|
+| `docs/ONBOARDING.md` | New developer setup, day-one checklist, daily rhythm |
 | `docs/plan-mode-prompt.md` | Structured review framework — BIG vs SMALL change, 4-section analysis |
+| `docs/client-handoff.md` | Client delivery process, email templates, feedback classification |
+| `docs/incident-response.md` | Production incident runbook, post-mortem template, severity levels |
 | `docs/docker-workflow.md` | Compose file structure, dev/staging/prod environment strategy |
 | `docs/db-connection.md` | PgBouncer + Prisma dual-URL configuration |
 | `docs/db-rollback-process.md` | Prisma migration rollback procedures |
@@ -161,40 +196,20 @@ Load these on demand with `@docs/filename.md` — they stay out of context until
 This library was validated against Anthropic's official Claude Code documentation
 (`code.claude.com/docs`) in March 2026. Key alignment points:
 
-**What's confirmed correct:**
 - `CLAUDE.md` at repo root is the recommended location for project-level context
-- `.claude/commands/*.md` is fully supported (Anthropic notes it's compatible with the newer `.claude/skills/` structure)
+- `.claude/skills/[name]/SKILL.md` is Anthropic's current preferred structure — each skill is a directory, enabling bundled supporting files alongside the command
 - `@path/to/file` import syntax in CLAUDE.md is Anthropic's documented approach
 - `settings.json` `permissions.allow/deny` with `Bash(command *)` format is correct
-- CLAUDE.md at 196 lines is just under Anthropic's recommended 200-line limit
 - Git worktrees are Anthropic's own recommended approach for parallel sessions
+- `$ARGUMENTS` is Anthropic's native substitution mechanism for command arguments
 
-**What was corrected after doc review:**
-- Added **YAML frontmatter** (`name`, `description`, `argument-hint`) to all 10 commands — this is how Claude knows when to offer or auto-invoke a skill
-- Added **`disable-model-invocation: true`** to 8 workflow commands (feature-start, build-feature, pr-prep, human-test, etc.) — prevents Claude from running side-effect commands automatically
-- Replaced `[issue-number]` placeholders with **`$ARGUMENTS`** — Anthropic's native substitution mechanism
+**Three advanced patterns worth knowing:**
 
-**Three additional patterns from Anthropic docs worth knowing:**
+1. **`.claude/skills/`** — The current preferred structure, used throughout this repo. Each skill is a directory (`feature-start/SKILL.md`) that can bundle supporting files alongside the command. Claude Code discovers all `SKILL.md` files automatically.
 
-1. **`.claude/skills/`** — The current preferred structure over `.claude/commands/`. Each skill becomes a directory (`deploy/SKILL.md`) and can bundle supporting files alongside it. Migrate when your commands need multi-file supporting assets.
-   ```
-   .claude/skills/
-   └── feature-start/
-       ├── SKILL.md          ← the command
-       └── templates/        ← supporting files
-   ```
+2. **`.claude/rules/`** — Path-scoped rules that only load for matching files. Useful for monorepos (frontend-specific rules only load when editing React files).
 
-2. **`.claude/rules/`** — Path-scoped rules that only load into context for matching files. Useful for monorepos (e.g., frontend-specific rules only load when editing React files).
-   ```yaml
-   # .claude/rules/api.md
-   ---
-   paths:
-     - "src/api/**/*.ts"
-   ---
-   All API endpoints must validate input with Zod...
-   ```
-
-3. **Auto memory** (`v2.1.59+`) — Claude writes its own notes between sessions (debugging insights, patterns it discovers). Stored in `~/.claude/projects/<repo>/memory/`. View and manage with `/memory` in Claude Code. Complements CLAUDE.md — you write CLAUDE.md, Claude writes auto memory.
+3. **Auto memory** (`v2.1.59+`) — Claude writes its own notes between sessions. Stored in `~/.claude/projects/<repo>/memory/`. View with `/memory` in Claude Code.
 
 ---
 
@@ -205,4 +220,6 @@ This library was validated against Anthropic's official Claude Code documentatio
 - **Plan before build** — no code written without an approved plan
 - **Test first** — failing tests before implementation, every time
 - **Parallel by default** — worktrees + draft PRs make multi-track work safe
-- **Commands as institutional memory** — team patterns live in `.claude/commands/`, not in people's heads
+- **Finish before starting** — no new features while PRs are waiting for review
+- **Skills as institutional memory** — team patterns live in `.claude/skills/`, not in people's heads
+- **Client delivery is part of the workflow** — shipping to a client is as structured as shipping code

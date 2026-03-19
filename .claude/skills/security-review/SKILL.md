@@ -18,8 +18,6 @@ git diff main...HEAD --name-only
 git diff main...HEAD --stat
 ```
 
-Identify which categories are in scope based on the files changed:
-
 | Files changed | Risks in scope |
 |---|---|
 | `auth/`, `middleware/`, JWT/session code | A01: Broken Access Control, A07: Auth Failures |
@@ -34,14 +32,12 @@ Identify which categories are in scope based on the files changed:
 ## Step 2 — Static secret scan
 
 ```bash
-# Scan for exposed secrets, tokens, and credentials
 git diff main...HEAD | grep -iE \
   "(api_key|apikey|secret|password|passwd|token|bearer|private_key|access_key|auth_token|client_secret)" \
   | grep -v "^---" | grep -v "^+++" | grep -v "placeholder\|example\|your_\|<YOUR\|TODO"
 ```
 
 ```bash
-# Check for hardcoded connection strings or credentials
 git diff main...HEAD | grep -iE \
   "(mongodb\+srv|postgres://|mysql://|redis://|amqp://)" \
   | grep -v "localhost\|127.0.0.1"
@@ -53,11 +49,9 @@ Flag any match as **Critical** — no exceptions.
 
 ## Step 3 — Authentication and authorization review
 
-Audit changed auth-related code against these checks:
-
 **A01 — Broken Access Control**
 - [ ] Every route has explicit authorization middleware — no route is accidentally public
-- [ ] Resource ownership is verified before read/write (user can only access their own data)
+- [ ] Resource ownership is verified before read/write
 - [ ] Admin-only endpoints verify admin role, not just authentication
 - [ ] No `isAdmin` or role checks in the frontend only — server enforces all permissions
 - [ ] IDOR risk: IDs in URLs/params are validated against the authenticated user's access scope
@@ -74,19 +68,17 @@ Audit changed auth-related code against these checks:
 
 ## Step 4 — Input validation and injection review
 
-**A03 — Injection (SQL, NoSQL, command, template)**
+**A03 — Injection**
 
 ```bash
-# Find raw query construction (potential SQL injection)
 git diff main...HEAD | grep -E "(query|execute|raw)\s*\(" \
   | grep -v "prisma\.\|sequelize\.\|knex\."
 ```
 
 - [ ] All database queries use parameterized queries or ORM methods — no string concatenation
-- [ ] Prisma raw queries (`$queryRaw`, `$executeRaw`) use tagged template literals, not string concatenation
+- [ ] Prisma raw queries use tagged template literals, not string concatenation
 - [ ] No `eval()`, `new Function()`, or dynamic `require()` with user-controlled input
-- [ ] Shell commands (`exec`, `spawn`, `execSync`) don't include user input without sanitization
-- [ ] Template engines escape output by default — no manual `{{{ }}}` or `raw` with user data
+- [ ] Shell commands don't include user input without sanitization
 
 **A04 — Insecure Design**
 - [ ] File uploads validate MIME type server-side (not just client-side extension)
@@ -97,43 +89,36 @@ git diff main...HEAD | grep -E "(query|execute|raw)\s*\(" \
 
 ## Step 5 — API security review
 
-**CORS configuration**
+**CORS**
 ```bash
 git diff main...HEAD | grep -iE "cors|origin|allowedOrigins"
 ```
-
 - [ ] CORS origin is a whitelist of specific domains — not `*` in production
-- [ ] `credentials: true` is only set when necessary and paired with a specific origin
 
 **Rate limiting**
 - [ ] Auth endpoints (login, register, password reset) have rate limiting
 - [ ] Public API endpoints have rate limiting
-- [ ] Rate limit library is applied in middleware, not per-route
 
 **Security headers**
 ```bash
 git diff main...HEAD | grep -iE "helmet|Content-Security-Policy|X-Frame-Options|HSTS"
 ```
-
 - [ ] `helmet` (or equivalent) is applied globally
-- [ ] CSP header is configured — no `unsafe-inline` or `unsafe-eval` without justification
 
 **HTTP method handling**
-- [ ] Mutating operations (create/update/delete) use POST/PUT/PATCH/DELETE — not GET
+- [ ] Mutating operations use POST/PUT/PATCH/DELETE — not GET
 - [ ] Sensitive actions require a CSRF token or `SameSite=Strict` cookie policy
 
 ---
 
 ## Step 6 — Cryptographic failures review
 
-**A02 — Cryptographic Failures**
 - [ ] Sensitive data (PII, payment info) encrypted at rest
 - [ ] HTTPS enforced — no HTTP endpoints in production config
-- [ ] No sensitive data logged (passwords, tokens, full card numbers, SSNs)
-- [ ] Cookies storing session tokens set with `HttpOnly`, `Secure`, `SameSite=Strict`
+- [ ] No sensitive data logged (passwords, tokens, card numbers, SSNs)
+- [ ] Cookies set with `HttpOnly`, `Secure`, `SameSite=Strict`
 
 ```bash
-# Check for console.log of potentially sensitive objects
 git diff main...HEAD | grep "console\.log" \
   | grep -iE "(user|token|password|secret|key|auth|session)"
 ```
@@ -176,7 +161,6 @@ PASSED CHECKS:
   ✅ Parameterized queries used throughout
   ✅ CORS origin whitelisted
   ✅ npm audit: no critical/high vulnerabilities
-  [additional passing checks...]
 
 VERDICT: APPROVED / NEEDS FIXES / BLOCKED
 ═══════════════════════════════════════════════════════

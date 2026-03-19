@@ -17,8 +17,6 @@ file processing, or any user-facing page that will handle significant data volum
 git diff main...HEAD --name-only
 ```
 
-Identify performance risk areas:
-
 | Files changed | Performance risks |
 |---|---|
 | Prisma queries, repositories, services | N+1, missing includes, full-table scans |
@@ -35,35 +33,26 @@ Identify performance risk areas:
 **N+1 detection**
 
 ```bash
-# Find Prisma findMany calls — check each for missing includes
 git diff main...HEAD | grep -E "findMany|findFirst|findUnique" -A 5
 ```
 
-For each query, check:
-- [ ] Relations accessed in a loop are loaded via `include` or `select` in the parent query — not fetched inside a `.map()` or `forEach()`
+- [ ] Relations accessed in a loop are loaded via `include` or `select` — not fetched inside a `.map()`
 - [ ] `findMany` without `take` on a user-facing endpoint → **Warning** (unbounded query)
-- [ ] `findMany` without `take` in a background job processing all records → document expected volume
+- [ ] `findMany` without `take` in a background job → document expected volume
 
 **Missing index detection**
 
 ```bash
-# Find fields used in where clauses that may lack indexes
 git diff main...HEAD | grep -E "where:\s*\{" -A 3
-```
-
-For each `where` clause on a Prisma model, verify the field has a `@index` or `@@index` in the schema:
-
-```bash
-# Check current schema indexes
 grep -E "@index|@@index|@unique|@@unique" prisma/schema.prisma
 ```
 
-Flag fields used in `where`, `orderBy`, or `cursor` without an index as **Warning** if the table will have > 10,000 rows.
+Flag fields in `where`, `orderBy`, or `cursor` without an index as **Warning** if table > 10,000 rows.
 
 **Prisma `select` hygiene**
 
-- [ ] Queries fetching large models use `select` to return only needed fields — not full model objects
-- [ ] No `include: { user: true }` when only `user.name` is needed — use `select: { user: { select: { name: true } } }`
+- [ ] Queries use `select` to return only needed fields — not full model objects
+- [ ] No `include: { user: true }` when only `user.name` is needed
 
 **Transaction safety**
 
@@ -71,8 +60,8 @@ Flag fields used in `where`, `orderBy`, or `cursor` without an index as **Warnin
 git diff main...HEAD | grep -E "\$transaction" -B 2 -A 10
 ```
 
-- [ ] Multi-step writes that must be atomic are wrapped in `$transaction`
-- [ ] Transactions don't include slow operations (external API calls, file I/O) that hold locks
+- [ ] Multi-step writes are wrapped in `$transaction`
+- [ ] Transactions don't include slow operations (external API calls, file I/O)
 
 ---
 
@@ -84,34 +73,29 @@ git diff main...HEAD | grep -E "\$transaction" -B 2 -A 10
 git diff main...HEAD | grep -E "findMany|getAll|list" -A 10 | grep -v "take\|limit\|pageSize"
 ```
 
-- [ ] Every list endpoint accepts and enforces `limit`/`take` with a maximum (e.g., max 100)
-- [ ] Cursor-based or offset pagination implemented for large datasets
+- [ ] Every list endpoint enforces `limit`/`take` with a maximum (e.g., max 100)
 - [ ] Default page size is reasonable (≤ 50 for UI lists)
 
 **Parallel vs serial async**
 
 ```bash
-# Find sequential awaits that could be parallelized
 git diff main...HEAD | grep -E "await " -A 1 | grep -B 1 "await "
 ```
 
-Look for patterns like:
+Look for sequential `await` calls on independent operations — flag as **Warning**:
 ```typescript
 // Serial — slow if independent
 const user = await getUser(id);
 const orders = await getOrders(id);
-
 // Should be:
 const [user, orders] = await Promise.all([getUser(id), getOrders(id)]);
 ```
 
-Flag sequential `await` calls on independent operations as **Warning**.
-
 **Expensive synchronous operations**
 
 - [ ] No `JSON.parse` / `JSON.stringify` of large objects in the request path
-- [ ] No synchronous file reads (`readFileSync`) in request handlers
-- [ ] CPU-intensive operations offloaded to a background job — not blocking the event loop
+- [ ] No `readFileSync` in request handlers
+- [ ] CPU-intensive operations offloaded to a background job
 
 ---
 
@@ -120,7 +104,6 @@ Flag sequential `await` calls on independent operations as **Warning**.
 **Bundle size check**
 
 ```bash
-# If build script exists, run and capture bundle stats
 npm run build 2>&1 | grep -E "chunk|bundle|size|kB|MB" | tail -20
 ```
 
@@ -132,28 +115,18 @@ Thresholds:
 **Code splitting**
 
 ```bash
-# Check for large libraries imported without lazy loading
 git diff main...HEAD | grep -E "^import " | grep -iE "(chart|editor|pdf|video|map|canvas)"
 ```
 
-- [ ] Large, non-critical libraries (charts, rich text editors, PDFs) are lazy-loaded with `React.lazy()` / `dynamic()`
-- [ ] Route-level code splitting in place (Next.js automatic or React Router lazy routes)
+- [ ] Large, non-critical libraries are lazy-loaded with `React.lazy()` / `dynamic()`
+- [ ] Route-level code splitting in place
 
 **React render optimization**
 
-```bash
-git diff main...HEAD | grep -E "useEffect|useState|useMemo|useCallback" -B 2 -A 5
-```
-
-- [ ] `useEffect` dependencies arrays are correct — no missing or excess dependencies
+- [ ] `useEffect` dependencies arrays are correct
 - [ ] Expensive computations in render are wrapped in `useMemo`
-- [ ] Callback functions passed as props to memoized children are wrapped in `useCallback`
-- [ ] Lists of > 50 items use virtualization (e.g., `react-window`, `react-virtual`) or pagination
-
-```bash
-# Check for array/object literals created inline in JSX (defeats memoization)
-git diff main...HEAD | grep -E "=\{\[|\=\{\{" | grep -v "className\|style"
-```
+- [ ] Callback functions passed to memoized children are wrapped in `useCallback`
+- [ ] Lists of > 50 items use virtualization or pagination
 
 ---
 
@@ -163,10 +136,9 @@ git diff main...HEAD | grep -E "=\{\[|\=\{\{" | grep -v "className\|style"
 git diff main...HEAD | grep -E "addEventListener|setInterval|setTimeout|subscribe" -A 3
 ```
 
-- [ ] Every `addEventListener` in `useEffect` has a cleanup function removing it
+- [ ] Every `addEventListener` in `useEffect` has a cleanup function
 - [ ] Every `setInterval` / `setTimeout` in `useEffect` is cleared in the cleanup
-- [ ] Every subscription (Rx, EventEmitter, WebSocket) is unsubscribed/closed in cleanup
-- [ ] No closures over large data structures in long-lived intervals
+- [ ] Every subscription is unsubscribed/closed in cleanup
 
 ---
 
@@ -193,7 +165,6 @@ PASSED CHECKS:
   ✅ All list endpoints paginated
   ✅ Bundle size within thresholds
   ✅ No synchronous blocking in request handlers
-  [additional passing checks...]
 
 VERDICT: APPROVED / NEEDS FIXES / APPROVED WITH SCALE NOTES
 ═══════════════════════════════════════════════════════
@@ -206,13 +177,13 @@ VERDICT: APPROVED / NEEDS FIXES / APPROVED WITH SCALE NOTES
 | Level | Meaning | Action |
 |---|---|---|
 | 🔴 **Critical** | Will degrade or fail at expected production load | Block merge — fix first |
-| 🟡 **Warning** | Performance risk above a documented data volume threshold | Fix before merge, or document the threshold in a tech debt issue |
+| 🟡 **Warning** | Performance risk above a documented data volume threshold | Fix before merge, or document in a tech debt issue |
 | 🔵 **Informational** | Nice-to-have optimization | Log in tech-debt backlog |
 
 ---
 
 ## Next step
 
-- All Critical resolved, Warnings addressed or documented → proceed with `/security-review` or `/pr-prep`
+- All Critical resolved, Warnings addressed → proceed with `/security-review` or `/pr-prep`
 - Unresolved Critical → return to worktree and fix
 - Warning items deferred → create a GitHub issue tagged `tech-debt` with the threshold documented

@@ -22,7 +22,6 @@ or document a deliberate trade-off as an ADR (`adr <title>`).
 ### Step 1 — TODO / FIXME scan
 
 ```bash
-# Count and list all TODO/FIXME/HACK/XXX comments
 grep -rn "TODO\|FIXME\|HACK\|XXX\|TEMP\|@deprecated" \
   --include="*.ts" --include="*.tsx" --include="*.js" \
   --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next \
@@ -35,7 +34,6 @@ Categorize each:
 - **@deprecated** → flag if the deprecated item is still being imported anywhere
 
 ```bash
-# Check if deprecated items are still imported
 grep -rn "@deprecated" --include="*.ts" --include="*.tsx" -l . \
   --exclude-dir=node_modules | while read file; do
     symbol=$(grep -o "function \w*\|const \w*\|class \w*" "$file" | head -1)
@@ -50,14 +48,12 @@ done
 ### Step 2 — Complexity hotspots
 
 ```bash
-# Find functions over 50 lines (complexity proxy)
 awk '/^(export |async )?function |^const \w+ = (async )?\(/{start=NR} \
   start && NR-start>50{print FILENAME ":" start " — function is " NR-start " lines"; start=0}' \
   $(find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | grep -v dist)
 ```
 
 ```bash
-# Find files over 300 lines (god file risk)
 find . \( -name "*.ts" -o -name "*.tsx" \) \
   -not -path "*/node_modules/*" -not -path "*/dist/*" \
   | xargs wc -l 2>/dev/null | sort -rn | head -20
@@ -70,23 +66,18 @@ Flag files > 500 lines or functions > 80 lines as **Warning** — candidate for 
 ### Step 3 — Duplication detection
 
 ```bash
-# Find repeated patterns (5+ identical lines across files)
 grep -rn --include="*.ts" --include="*.tsx" \
   -h "." --exclude-dir=node_modules --exclude-dir=dist \
   | sort | uniq -d -c | sort -rn | head -20
 ```
 
-Look for:
-- Repeated error handling patterns → candidate for shared middleware/utility
-- Repeated data transformation logic → candidate for a shared utility function
-- Copy-pasted validation logic → candidate for a shared Zod schema
+Look for repeated error handling, data transformation, or validation logic — each is a candidate for a shared utility.
 
 ---
 
 ### Step 4 — Outdated patterns
 
 ```bash
-# Find patterns that should have been migrated
 grep -rn \
   -e "require(" \
   -e "var " \
@@ -96,12 +87,7 @@ grep -rn \
   --exclude-dir=node_modules . | grep -v "// legacy\|// vendor\|test"
 ```
 
-- `require()` in TypeScript → should be ES `import`
-- `var ` → should be `const`/`let`
-- `.then()` chains → should be `async/await` (except where intentional)
-
 ```bash
-# Find any direct database calls bypassing the service layer
 grep -rn "prisma\." \
   --include="*.ts" --include="*.tsx" \
   --exclude-dir=node_modules \
@@ -115,8 +101,6 @@ Flag direct Prisma calls in route handlers or components as **Warning** — they
 ### Step 5 — Dead code detection
 
 ```bash
-# Find exported symbols that are never imported
-# (approximation — run full treeshaking analysis for precision)
 grep -rn "^export " --include="*.ts" --include="*.tsx" \
   --exclude-dir=node_modules . \
   | grep -v "index.ts" \
@@ -158,7 +142,6 @@ LOW PRIORITY (backlog):
 
 RECOMMENDED GITHUB ISSUES TO CREATE:
   □ "[Short title]" — label: tech-debt — [1-sentence description]
-  □ "[Short title]" — label: tech-debt — [1-sentence description]
 ═══════════════════════════════════════════════════════
 ```
 
@@ -184,10 +167,6 @@ ADRs document deliberate architectural trade-offs so future team members underst
 
 ```bash
 ls docs/adr/ 2>/dev/null || echo "No ADR directory yet"
-```
-
-If the directory doesn't exist, create it:
-```bash
 mkdir -p docs/adr
 ```
 
@@ -211,38 +190,29 @@ Create `docs/adr/[NNN]-[kebab-case-title].md` with this structure:
 ---
 
 ## Context
-
-[What is the issue or situation that requires this decision?
-What forces are at play — technical, business, resource constraints?]
+[What is the issue or situation that requires this decision?]
 
 ## Decision
-
-[What decision was made? State it clearly and affirmatively.
-"We will use X because..."]
+[What decision was made? "We will use X because..."]
 
 ## Consequences
 
 **Positive:**
 - [Benefit 1]
-- [Benefit 2]
 
 **Negative / trade-offs:**
 - [Cost or limitation 1]
-- [Cost or limitation 2]
 
 **Debt incurred (if any):**
-- [What future work is deferred or accepted as a result?]
-- GitHub issue: #[N] (if one was created)
+- GitHub issue: #[N]
 
 ## Alternatives considered
 
 | Option | Reason not chosen |
 |---|---|
 | [Alternative A] | [Why rejected] |
-| [Alternative B] | [Why rejected] |
 
 ## References
-
 - [Link to relevant docs, issues, or prior art]
 ```
 
@@ -259,5 +229,5 @@ Remind the user to commit the ADR as part of the PR that implements the decision
 
 ## Next step
 
-- After a debt audit: review the prioritized list, create issues for High/Medium items, then return to current sprint work
+- After a debt audit: review the prioritised list, create issues for High/Medium items, return to sprint work
 - After creating an ADR: commit it alongside the implementation PR so reviewers see the rationale

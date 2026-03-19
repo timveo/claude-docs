@@ -78,8 +78,10 @@ Closes #[ISSUE_NUMBER]
 ## Changes
 -
 
-## Testing
+## Quality gates
 - [ ] `/verify` passes (lint + typecheck + tests)
+- [ ] `/security-review` run — or N/A (reason: _______________)
+- [ ] `/performance-review` run — or N/A (reason: _______________)
 - [ ] `/human-test` completed
 - [ ] All acceptance criteria met
 
@@ -122,6 +124,10 @@ gh label create "chore" --color "e4e669" --description "Maintenance"
 gh label create "blocked" --color "b60205" --description "Blocked by dependency"
 gh label create "ready-for-review" --color "0e8a16" --description "Ready for human review"
 gh label create "in-progress" --color "fbca04" --description "Actively being worked on"
+gh label create "tech-debt" --color "bfd4f2" --description "Technical debt"
+gh label create "client-feedback" --color "e4e669" --description "Feedback from client"
+gh label create "incident" --color "b60205" --description "Production incident"
+gh label create "onboarding" --color "c5def5" --description "Good first issue for new developers"
 ```
 
 ---
@@ -142,3 +148,4 @@ The pre-commit hook should run and pass. If it fails, fix the issue before proce
 1. Write `PRD.md` and `ARCHITECTURE.md` and commit them to `/docs`
 2. Run `/prd-to-issues` to generate GitHub milestones and issues from the PRD
 3. Run `/parallel-status` to see what's ready to start
+4. Have new developers follow `@docs/ONBOARDING.md` before starting their first issue

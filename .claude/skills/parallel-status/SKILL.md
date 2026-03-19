@@ -71,6 +71,8 @@ PARALLEL STATUS DASHBOARD — [date]
 ────────────────────────────────────────
 Active worktrees: [N]  |  Open PRs: [N]  |  Issues ready to start: [N]
 
+⚠️  CAPACITY CHECK: If 2+ PRs are awaiting review, clear them before starting new work.
+
 IN PROGRESS:
   🔨 #42 "Add user auth"  →  feat/42-user-auth
      PR #15 (draft)  CI: ✅ passing
@@ -103,8 +105,10 @@ Suggested next actions:
 
 ## Capacity guidance
 
-For a team of 3–6, the optimal number of parallel tracks is **3–4 maximum**.
-More tracks means more rebase conflicts, more context-switching, and a review bottleneck.
+Hard cap: **no new `/feature-start` if 2+ PRs are already awaiting review**.
+Finishing is more valuable than starting — a review backlog kills velocity faster than anything else.
+
+For a team of 2–6, the optimal number of parallel tracks is **3–4 maximum**.
 
 A healthy state:
 - 1–2 features actively being built
@@ -112,5 +116,4 @@ A healthy state:
 - 1 recently merged, monitoring CI/production
 
 If more than 4 PRs are open simultaneously, flag it:
-"You have [N] open PRs. Consider reviewing and merging existing work before opening
-new tracks — context switching above 4 parallel streams starts costing more than it saves."
+"You have [N] open PRs. Review and merge existing work before opening new tracks."

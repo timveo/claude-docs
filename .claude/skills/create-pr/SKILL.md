@@ -50,17 +50,12 @@ Closes #[issue-number]
 ### Modified files
 - `[path]` — [what changed and why]
 
-## Testing
-
-- Unit tests: [N] added, all passing
-- Manual testing: completed via `/human-test` — [brief outcome]
-
-## Acceptance criteria
-- [x] [Criterion 1]
-- [x] [Criterion 2]
-- [x] TypeScript: no errors
-- [x] Tests: all passing
-- [x] Lint: clean
+## Quality gates
+- [x] /verify passes (lint + typecheck + tests)
+- [x] /security-review run — or N/A (reason: _______________)
+- [x] /performance-review run — or N/A (reason: _______________)
+- [x] /human-test completed
+- [x] All acceptance criteria met
 EOF
 )"
 
