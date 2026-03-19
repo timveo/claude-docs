@@ -39,8 +39,9 @@ datasource db {
 ---
 
 ## Troubleshooting
+
 | Symptom | Likely Cause | Fix |
-|---|---|---|
+|---------|-------------|-----|
 | Migration hangs | Running via PgBouncer | Switch to `DIRECT_URL` |
 | Prepared statement error | Missing `?pgbouncer=true` | Add to `DATABASE_URL` |
 | Pool exhaustion | `connection_limit` too high | Set to `1` per instance |

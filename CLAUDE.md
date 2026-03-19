@@ -1,6 +1,7 @@
 # CLAUDE.md — Project Configuration
 
 > **[CUSTOMIZE]** Replace placeholder commands, paths, and domain context with your project's specifics before use.
+> This file is read automatically by Claude Code at the start of every session.
 
 <!-- PROJECT CONTEXT — highest-value section, customize first -->
 ## Project
@@ -35,12 +36,12 @@ npm run db:generate      # Regenerate Prisma client after schema changes
     /controllers/        # Route handlers — thin, delegate to services
     /services/           # Business logic — all domain logic lives here
     /routes/             # Express route definitions
-    /middleware/          # Auth, rate limiting, error handling
+    /middleware/         # Auth, rate limiting, error handling
     /lib/                # Shared utilities — CHECK HERE before writing new ones
     /types/              # TypeScript type definitions
     /workers/            # Background jobs (BullMQ)
 /prisma/                 # Schema + migrations (source of truth)
-/docs/                   # Reference docs (load with @docs/filename.md)
+/docs/                   # Reference docs (load on demand, e.g. @docs/docker-workflow.md)
 ```
 <!-- [CUSTOMIZE] Update the tree above to match your actual project structure -->
 
@@ -51,8 +52,30 @@ npm run db:generate      # Regenerate Prisma client after schema changes
 ### Every Task
 1. **Plan first** — Use Plan Mode for tasks with 3+ steps or architectural decisions. Stop and re-plan if approach isn't working.
 2. **Check in** — Confirm approach with user before starting complex work
-3. **Verify** — Run lint + typecheck + tests before declaring done
+3. **Verify** — Run `/verify` (lint + typecheck + tests) before declaring done
 4. **Use subagents** for research and exploration — keep main context clean
+
+### Feature Development Loop
+Each feature runs in its own git worktree — see **Parallel Development** below.
+
+| Step | Command | What happens |
+|------|---------|-------------|
+| Start feature | `/feature-start [N]` | Worktree + branch + draft PR |
+| Build | `/build-feature [N]` | Plan → TDD build → AC verify |
+| Quality check | `/verify` | Lint + typecheck + tests |
+| Security gate | `/security-review` | OWASP audit — run if touching auth/data/integrations |
+| Performance gate | `/performance-review` | N+1, bundle, indexes — run if touching queries/lists |
+| Human test | `/human-test [N]` | Docker stack + testing checklist |
+| Merge | `/pr-prep [N]` | Rebase + review + create PR + cleanup |
+
+### Production Quality Gates
+| Command | Cadence |
+|---------|---------|
+| `/tech-debt current-branch` | Per PR (optional) — debt in changed code |
+| `/tech-debt full-codebase` | Monthly / pre-sprint — full triage |
+| `/tech-debt adr "title"` | When making deliberate trade-offs |
+| `/dependency-audit` | Monthly + before every release |
+| `/release-checklist [version]` | Before every production deploy — GO / NO-GO |
 
 ### Code Reviews
 - For every issue: describe concretely with file references, present 2–3 options with tradeoffs, give opinionated recommendation
@@ -124,33 +147,54 @@ Environments: `development` · `staging` · `production`
 ---
 
 ## Git
-- Branch naming: `feature/`, `fix/`, `chore/`
+- Branch naming: `feat/[issue-number]-[short-title]` · `fix/[issue-number]-[short-title]`
 - Conventional commits: `type(scope): description`
-- One concern per PR
+- One concern per PR — squash merge to main
+- Always open a draft PR when a branch is created (handled by `/feature-start`)
+
+---
+
+## Parallel Development
+Multiple features can be developed simultaneously using git worktrees.
+Each feature gets its own isolated directory and branch.
+
+```
+/desktop/development/
+├── my-project/              ← main (always clean)
+├── my-project-feat-42/      ← feat/42-user-auth  (worktree)
+└── my-project-feat-51/      ← feat/51-dashboard  (worktree)
+```
+
+Rules:
+- Max 3–4 parallel tracks for a team of 3–6
+- Only parallelize issues that don't touch the same files
+- Rebase against main daily to minimize conflicts
+- Run `/parallel-status` as your daily standup dashboard
 
 ---
 
 ## Testing
 - Tests required for all new business logic
+- Write tests before implementation (test-first)
 - Unit tests colocated: `module.test.ts` next to the module
 - Integration tests in `/tests/`
 - Minimum: happy path + one failure path per function
-- Run full suite before marking any task done
+- Run `/verify` before marking any task done
 
 ---
 
 ## Dependency Preferences
-<!-- [CUSTOMIZE] List your preferred libraries so Claude doesn't add unnecessary deps -->
-<!-- Examples: -->
-<!-- - Email: Resend — don't add SendGrid or other providers -->
-<!-- - Validation: Zod — don't use Joi or Yup -->
-<!-- - HTTP client: Axios (already installed) — don't add node-fetch or got -->
+<!-- [CUSTOMIZE] Preferred libraries — prevents Claude adding unwanted deps -->
+<!-- e.g. Email: Resend · Validation: Zod · HTTP: Axios (installed) -->
 
 ---
 
 ## Known Gotchas
-<!-- [CUSTOMIZE] Document project-specific footguns discovered during development -->
-<!-- Examples: -->
-<!-- - The `sessions` table has a unique constraint on (userId, eventId) — always upsert -->
-<!-- - Rate limiter uses Redis — tests need REDIS_URL or they'll hang -->
-<!-- - Frontend proxy in vite.config.ts only works when backend runs on port 3000 -->
+<!-- [CUSTOMIZE] Project-specific footguns discovered during development -->
+<!-- e.g. sessions table has unique (userId, eventId) — always upsert -->
+
+---
+
+## Current Sprint
+<!-- [CUSTOMIZE] Milestone: [NAME] · Due: [DATE] · GitHub: [URL] -->
+<!-- Priority issues: #N, #N, #N -->

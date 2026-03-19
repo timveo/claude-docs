@@ -1,15 +1,39 @@
-Run the full verification suite for this project. Run backend and frontend in parallel where applicable.
+---
+name: verify
+description: Runs the full quality suite — lint, TypeScript typecheck, and tests for both frontend and backend in parallel. Called automatically at the end of /build-feature and /pr-prep. Also triggers on "run tests", "check everything", "does it pass", or "verify before PR".
+---
 
-<!-- [CUSTOMIZE] Replace with your actual verification commands and directories -->
+# /verify — Full Quality Suite
+
+Run the complete lint + typecheck + test pipeline before any PR or deployment.
+Called automatically at the end of `/build-feature` and `/pr-prep`.
+
+---
+
+## [CUSTOMIZE] Adapt the paths below to your monorepo structure.
+
+Run backend and frontend checks in parallel:
 
 **Backend** (from `/backend`):
-1. `npm run lint`
-2. `npm run typecheck`
-3. `npm test`
+```bash
+npm run lint
+npm run typecheck
+npm run test
+```
 
 **Frontend** (from `/frontend`):
-1. `npm run lint`
-2. `npm run typecheck`
-3. `npm test`
+```bash
+npm run lint
+npm run typecheck
+npm run test
+```
 
-Report any failures with file and line references. If everything passes, give a short summary of what was checked.
+Run both sets in parallel where possible to save time.
+
+---
+
+## Output
+
+- Document any failures with file name, line number, and error message
+- If all checks pass, report: "✅ Verify passed — lint, typecheck, and tests clean"
+- If any fail, stop and fix before proceeding — do not mark a task done with failing checks
